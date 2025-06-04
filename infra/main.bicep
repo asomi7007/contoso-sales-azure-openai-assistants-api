@@ -73,7 +73,7 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
           version: openAiDeploymentVersion
         }
         sku: {
-          name: 'Standard'
+          name: 'GlobalStandard'
           capacity: openAiDeploymentCapacity
         }
       }
