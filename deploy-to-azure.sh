@@ -33,6 +33,18 @@ else
     echo "✅ Already logged in to Azure Developer CLI"
 fi
 
+# Check if azd environment exists, if not create one
+echo ""
+echo "🔍 Checking azd environment..."
+if ! azd env list 2>/dev/null | grep -q "ContosoSalesAssistant"; then
+    echo "⚙️  Creating new azd environment..."
+    ENVIRONMENT_NAME="ContosoSalesAssistant$(date +%m%d)$(shuf -i 1000-9999 -n 1)"
+    azd init --environment "$ENVIRONMENT_NAME"
+    echo "✅ Created environment: $ENVIRONMENT_NAME"
+else
+    echo "✅ Using existing azd environment"
+fi
+
 # Set up environment variables for deployment
 echo ""
 echo "⚙️  Setting up deployment parameters..."
@@ -77,7 +89,7 @@ if azd up --no-prompt; then
     
     echo "🌐 Application URL: ${SERVICE_URI}/sales"
     echo "👤 Username: sales@contoso.com"
-    echo "🔑 Password: ${ASSISTANT_PASSWORD}"
+    echo "🔑 Password: password (fixed in code)"
     echo "📍 Azure Region: ${AZURE_LOCATION}"
     echo "📦 Resource Group: ${RESOURCE_GROUP}"
     echo ""
@@ -86,7 +98,7 @@ if azd up --no-prompt; then
     echo ""
     echo "🔐 Login with:"
     echo "   Username: sales@contoso.com"
-    echo "   Password: ${ASSISTANT_PASSWORD}"
+    echo "   Password: password (fixed in code)"
     echo ""
 else
     echo ""
