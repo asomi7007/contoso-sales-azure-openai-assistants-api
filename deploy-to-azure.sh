@@ -5,6 +5,12 @@
 
 set -e  # Exit on error
 
+# 브라우저 자동 실행 완전 차단 및 디바이스 코드 강제
+export BROWSER=false
+export NO_BROWSER=1
+export AZURE_CLI_DISABLE_CONNECTION_VERIFICATION=1
+export AZD_AUTH_MODE=devicecode
+
 echo "🚀 Starting Contoso Sales Assistant deployment to Azure..."
 echo ""
 
@@ -14,9 +20,9 @@ echo ""
 echo "🔍 Checking Azure CLI authentication..."
 if ! az account show &> /dev/null; then
     echo "❌ Not logged in to Azure CLI"
-    echo "🔐 Please login to Azure CLI with device code..."
+    echo "🔐 반드시 디바이스 코드 로그인만 허용됩니다."
     az login --use-device-code
-    echo "✅ Azure CLI login completed"
+    echo "✅ Azure CLI login completed (device code)"
 else
     echo "✅ Already logged in to Azure CLI"
     CURRENT_USER=$(az account show --query user.name -o tsv)
@@ -28,9 +34,9 @@ echo ""
 echo "🔍 Checking Azure Developer CLI authentication..."
 if ! azd auth show &> /dev/null; then
     echo "❌ Not logged in to Azure Developer CLI"
-    echo "🔐 Please login to Azure Developer CLI with device code..."
+    echo "🔐 반드시 디바이스 코드 로그인만 허용됩니다."
     azd auth login --use-device-code
-    echo "✅ Azure Developer CLI login completed"
+    echo "✅ Azure Developer CLI login completed (device code)"
 else
     echo "✅ Already logged in to Azure Developer CLI"
 fi
@@ -86,8 +92,36 @@ echo "🚀 Starting Azure deployment..."
 echo "   This process may take 5-10 minutes..."
 echo ""
 
-# Deploy with azd up
-if azd up --no-prompt; then
+# 배포 전 Azure Developer CLI 강제 디바이스 로그인
+echo "🔐 Azure Developer CLI 디바이스 코드 로그인 진행..."
+azd auth login --use-device-code
+echo "✅ Azure Developer CLI 로그인 완료"
+
+# Azure 구독 설정 확인 및 선택
+echo ""
+echo "🔍 Azure 구독 확인 중..."
+if ! azd env get-value AZURE_SUBSCRIPTION_ID &> /dev/null; then
+    echo "📋 사용 가능한 Azure 구독 목록:"
+    az account list --output table
+    echo ""
+    echo "🔐 구독을 선택하세요 (기본 구독 사용하려면 엔터, 다른 구독 선택하려면 번호 입력)..."
+    if azd up; then
+        DEPLOYMENT_SUCCESS=true
+    else
+        DEPLOYMENT_SUCCESS=false
+    fi
+else
+    echo "✅ 기존 구독 사용 중"
+    # Deploy with azd up
+    if azd up --no-prompt; then
+        DEPLOYMENT_SUCCESS=true
+    else
+        DEPLOYMENT_SUCCESS=false
+    fi
+fi
+
+# 배포 결과 확인
+if [ "$DEPLOYMENT_SUCCESS" = "true" ]; then
     echo ""
     echo "🎉 Deployment completed successfully!"
     echo ""
