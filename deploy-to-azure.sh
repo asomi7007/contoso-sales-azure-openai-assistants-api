@@ -8,6 +8,8 @@ set -e  # Exit on error
 echo "🚀 Starting Contoso Sales Assistant deployment to Azure..."
 echo ""
 
+
+
 # Check if user is logged in to Azure CLI
 echo "🔍 Checking Azure CLI authentication..."
 if ! az account show &> /dev/null; then
@@ -19,6 +21,18 @@ else
     echo "✅ Already logged in to Azure CLI"
     CURRENT_USER=$(az account show --query user.name -o tsv)
     echo "   Current user: $CURRENT_USER"
+fi
+
+# Check if user is logged in to Azure Developer CLI
+echo ""
+echo "🔍 Checking Azure Developer CLI authentication..."
+if ! azd auth show &> /dev/null; then
+    echo "❌ Not logged in to Azure Developer CLI"
+    echo "🔐 Please login to Azure Developer CLI with device code..."
+    azd auth login --use-device-code
+    echo "✅ Azure Developer CLI login completed"
+else
+    echo "✅ Already logged in to Azure Developer CLI"
 fi
 
 # Check if user is logged in to Azure Developer CLI
